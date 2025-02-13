@@ -1,3 +1,15 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: db-pvc
+spec:
+  accessModes:
+  - ReadWriteOnce
+  storageClassName: nfs-static-storage
+  resources:
+    requests:
+      storage: 4Gi
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -28,12 +40,11 @@ spec:
           volumeMounts:
           - name: db-vol
             mountPath: "/var/lib/postgresql/data"
-            subPath: "pgdata"
+            subPath: pgdata
       volumes:
         - name: db-vol
-          hostPath:
-             path: /k3d/images
-             type: Directory          
+          persistentVolumeClaim:
+            claimName: db-pvc
 ---
 apiVersion: v1
 kind: Service
@@ -46,4 +57,4 @@ spec:
     - port: 5432
       targetPort: 5432
       nodePort: 30000
-  type: NodePort
+  type: LoadBalancer
